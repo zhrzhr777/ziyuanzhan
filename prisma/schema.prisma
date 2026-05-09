@@ -1,0 +1,96 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model User {
+  id        String     @id @default(cuid())
+  email     String     @unique
+  password  String
+  name      String
+  role      String     @default("USER")
+  createdAt DateTime   @default(now())
+  orders    Order[]
+  downloads Download[]
+}
+
+model Category {
+  id          String     @id @default(cuid())
+  name        String     @unique
+  slug        String     @unique
+  description String     @default("")
+  icon        String     @default("📁")
+  sortOrder   Int        @default(0)
+  resources   Resource[]
+  createdAt   DateTime   @default(now())
+}
+
+model Resource {
+  id            String     @id @default(cuid())
+  title         String
+  slug          String     @unique
+  description   String     @default("")
+  content       String     @default("")
+  price         Float      @default(0)
+  coverImage    String     @default("")
+  fileUrl       String     @default("")
+  externalUrl   String     @default("")
+  fileSize      String     @default("")
+  fileType      String     @default("")
+  categoryId    String
+  category      Category   @relation(fields: [categoryId], references: [id])
+  tags          String     @default("")
+  isPublished   Boolean    @default(false)
+  isFeatured    Boolean    @default(false)
+  downloadCount Int        @default(0)
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+  orders        Order[]
+  downloads     Download[]
+}
+
+model Order {
+  id           String     @id @default(cuid())
+  orderNo      String     @unique
+  userId       String
+  user         User       @relation(fields: [userId], references: [id])
+  resourceId   String
+  resource     Resource   @relation(fields: [resourceId], references: [id])
+  amount       Float
+  status       String     @default("PENDING")
+  payjsOrderId String     @default("")
+  paidAt       DateTime?
+  createdAt    DateTime   @default(now())
+  downloads    Download[]
+}
+
+model Download {
+  id           String   @id @default(cuid())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id])
+  resourceId   String
+  resource     Resource @relation(fields: [resourceId], references: [id])
+  orderId      String?
+  order        Order?   @relation(fields: [orderId], references: [id])
+  token        String   @unique
+  downloadedAt DateTime @default(now())
+}
+
+model AdSlot {
+  id        String   @id @default(cuid())
+  position  String   @unique
+  name      String
+  adCode    String   @default("")
+  isActive  Boolean  @default(false)
+  updatedAt DateTime @updatedAt
+}
+
+model SiteSetting {
+  id        String @id @default(cuid())
+  key       String @unique
+  value     String @default("")
+}
